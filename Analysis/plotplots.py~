@@ -1,0 +1,171 @@
+import os
+import math
+from 
+# creates a gnuplot of the user's disk usage changes
+# versus each time step
+# create gp file for plotting
+def plotClusters(methodname):
+	fplot = open(str(methodname + '.gp'), 'w')
+
+	print >> fplot, "set terminal png\n"
+	print >> fplot, "set title \"Logscale plot of writes(+) and deletes(-) color coded by classification\"\n"
+	print >> fplot, "set ylabel \"Log_2 (I/O Size)\"\n"
+	print >> fplot, "set xlabel \"User #\"\n"
+	print >> fplot, "set style arrow 1 nohead\n"
+
+	print >> fplot, "set arrow from 0,10 to 45,10 as 1"
+	print >> fplot, "set arrow from 0,20 to 45,20 as 1"
+	print >> fplot, "set arrow from 0,30 to 45,30 as 1"
+	print >> fplot, "set arrow from 0,-10 to 45,-10 as 1"
+	print >> fplot, "set arrow from 0,-20 to 45,-20 as 1"
+	print >> fplot, "set arrow from 0,-30 to 45,-30 as 1"
+	print >> fplot, "set output \"meanshiftCluster.png\"\n"
+	print >> fplot, "plot ",
+
+	for i in range(len(centroids)):
+		if i > 0:
+			print >> fplot, ",",
+		if i < (len(centroids)-1):
+			print >> fplot, "\"cluster_meanshift" + str(i) + ".txt\" using 1:3 notitle",
+		else:
+			print >> fplot, "\"cluster_meanshift" + str(i) + ".txt\" using 1:3 notitle"
+
+
+def plotUserUsage(userID, tmplis, dataset, trainUntilIndex):
+
+	folder = str('plots/' + dataset + '/deltaChange/')
+	diskusagefile = open(str(folder + 'user' + userID + '_delta.txt'), 'w')
+	
+	for i in range(len(tmplis)):
+		print >> diskusagefile, tmplis[i]
+
+	gnuplot_ = open(str(folder + 'user' + userID + '_delta.gp'), 'w')
+
+	print >> gnuplot_, "set terminal postscript enhanced color"
+	print >> gnuplot_, "\n"
+	print >> gnuplot_, "set ylabel \"Disk Usage Change Complete Data\""
+	print >> gnuplot_, "set xlabel \"Time step (Original)\"\nset grid\nset key left top\nset gri"
+	print >> gnuplot_, "\n"
+	print >> gnuplot_, "set arrow from " + str(trainUntilIndex) + ",graph(0,0) to " + str(trainUntilIndex) +",graph(1,1) nohead"
+	print >> gnuplot_, "set title \"Disk Usage Change (log2) vs Time\""
+	print >> gnuplot_, "\n"
+	print >> gnuplot_, "set output '| ps2pdf - " + str('user' + userID + '_delta') + ".pdf'"
+	print >> gnuplot_, "\n"
+	print >> gnuplot_, "plot \"" + str('user' + userID + '_delta.txt') + "\" using 0:1 with lines notitle"
+
+def plotDiskUsageOrig_Pred(predictionFile, folderdir):
+
+	gnuplot_ = open(str(folderdir + '/plot_actual_pred.gp'), 'w')
+
+	print >> gnuplot_, "set terminal pdfcairo font \"Gill Sans,7\" linewidth 4 rounded\n"
+	print >> gnuplot_, "set size ratio 0.5"
+	print >> gnuplot_, "set ylabel \"Disk Usage (GB)\""
+	print >> gnuplot_, "set xlabel \"Time\"\nset grid back linestyle 81\nset border 3 back linestyle 80"
+	print >> gnuplot_, "set style line 80 lt rgb \"#808080\""
+	print >> gnuplot_, "set style line 81 lt 0"
+	print >> gnuplot_, "set style line 81 lt rgb \"#808080\""
+	print >> gnuplot_, "set xtics nomirror"
+	print >> gnuplot_, "set ytics nomirror"
+	print >> gnuplot_, "set arrow from " + str(trainUntilIndex) + ",graph(0,0) to " + str(trainUntilIndex) +",graph(1,1) nohead"
+	print >> gnuplot_, "set title \"Actual and Predicted Disk Usages\""
+	print >> gnuplot_, "\n"
+	print >> gnuplot_, "set output '| ps2pdf - " + str('user' + userID + '_delta') + ".pdf'"
+	print >> gnuplot_, "\n"
+	print >> gnuplot_, "plot \"" + str('user' + userID + '_delta.txt') + "\" using 0:1 with lines notitle"
+
+def plotContributionBars(systemUsage, userDelta, dataset, trainUntilIndex):
+	
+	folder = str('plots/' + dataset + '/deltaChange/')
+
+	gnuplot_ = open(str(folder + 'user' + '_contribution.gp'), 'w')
+	print >> gnuplot_, "set terminal postscript enhanced color"
+	print >> gnuplot_, "\n"
+	print >> gnuplot_, "set ylabel \"Disk Usage and User Contributions Complete Data (GB)\""
+	print >> gnuplot_, "set xlabel \"Time step (Original)\"\nset grid\nset key left top\nset gri"
+	print >> gnuplot_, "\n"
+	print >> gnuplot_, "set arrow from " + str(trainUntilIndex) + ",graph(0,0) to " + str(trainUntilIndex) +",graph(1,1) nohead"
+	print >> gnuplot_, "set title \"Disk Usage and User Contributions vs Time\""
+	print >> gnuplot_, "\n"
+	print >> gnuplot_, "set output '| ps2pdf - plot_of_user_contributions_" + dataset + ".pdf'"
+	print >> gnuplot_, "\n"
+
+	keylist = userDelta.keys()
+	currDeltaList = []
+
+	counter = 0
+	for user in keylist:
+		currDeltaList = userDelta[user][:]
+		currUserfile = open(str(folder + 'user' + str(user) + '_contribution.txt'), 'w')
+
+		if counter == 0:
+			grow_str = "plot \"" + str('user' + str(user) + '_contribution.txt') + "\" using 0:1 with lines notitle, "
+			grow_str += str('\"user' + str(user) + '_contribution.txt') + "\" using 0:2 with lines notitle, " #title \'user" + str(user) + "\', "
+		elif counter != (len(keylist)-1):
+			grow_str += str('\"user' + str(user) + '_contribution.txt') + "\" using 0:2 with lines notitle, " #title \'user" + str(user) + "\', "
+		else: # the final one
+			grow_str += str('\"user' + str(user) + '_contribution.txt') + "\" using 0:2 with lines notitle" #title \'user" + str(user) + "\'"
+			print >> gnuplot_, grow_str
+
+		counter += 1
+
+		for t in range(len(currDeltaList)):
+			print >> currUserfile, str(systemUsage[t]*(9.31323e-10)), str(currDeltaList[t]*(9.31323e-10))
+			
+
+def plotOverUnderPredictions(folder, clusteringstr, parametersetstr, overunderpredtxtfile):
+	fplot = open(str(folder+'/plotOverUnderPredictions_'+clusteringstr+parametersetstr+'.gp'), 'w')
+	
+	print >> fplot, "set terminal postscript enhanced color\n"
+	print >> fplot, "set ylabel \"OverPrediction Rates\""
+	print >> fplot, "set y2label \"UnderPrediction Rates\""
+	print >> fplot, "set xlabel \"Time\""
+	print >> fplot, "set grid x y2"
+	print >> fplot, "set key left top"
+	print >> fplot, "set gri"
+	print >> fplot, "set ytics nomirror"
+	print >> fplot, "set y2tics"
+	print >> fplot, "set tics out"
+	print >> fplot, "set title \"Over-Under Prediction Analysis " + folder + "\""
+	print >> fplot, "set output \'| ps2pdf - OverUnderPred_" + clusteringstr + parametersetstr + ".pdf\'"
+	print >> fplot, "plot \"" + overunderpredtxtfile + "\" using 1:2:xtic(1) with lines axes x1y1 title \"OverPrediction rate\", \"" + overunderpredtxtfile + "\" using 1:3:xtic(1) with lines axes x1y2 title \"UnderPrediction rate\"" #, \"" #+ overunderpredtxtfile + "\" using 1:4:xtic(1) with lines axes x1y2 title \"OverP. avg\", \"" + overunderpredtxtfile + "\" using 1:5:xtic(1) with lines axes x1y2 title \"UnderP. avg\""
+
+# call to print current HMM as txt file as well as  png
+def plotMMs(transhmm, currUser, startState, strname, clustcenters):
+	
+	fhmm = open(strname, 'w')
+	print >> fhmm, "digraph G {"
+
+	for i in range(len(transhmm)):
+		#print float(clustcenters[i])
+		if float(clustcenters[i]) > 0:
+			print >> fhmm, "\"w%s\" [style=filled color=\"#d77127\"];" % convertLog2DataToM(float(clustcenters[i]))
+		elif float(clustcenters[i]) < 0:
+			print >> fhmm, "\"d%s\" [style=filled color=\"#7b9a70\"];" % convertLog2DataToM(float(-1*float(clustcenters[i])))
+		else:
+			print >> fhmm, "\"%s\";" % str('nop')#float(clustcenters[i])
+
+		for j in range(len(transhmm)):
+			if transhmm[i][j] != 0:				
+				if float(clustcenters[i]) > 0:
+					print >> fhmm, "\"w%s\" ->" % convertLog2DataToM(float(clustcenters[i])),
+				elif float(clustcenters[i]) < 0:
+					print >> fhmm, "\"d%s\" ->" % convertLog2DataToM(float(-1*float(clustcenters[i]))),
+				else:
+					print >> fhmm, "\"%s\" ->" % str('nop'),#float(clustcenters[i]),
+
+				if float(clustcenters[j]) > 0:
+					print >> fhmm, "\"w%s\"" % convertLog2DataToM(float(clustcenters[j])),
+				elif float(clustcenters[j]) < 0:
+					print >> fhmm, "\"d%s\"" % convertLog2DataToM(float(-1*float(clustcenters[j]))),
+				else:
+					print >> fhmm, "\"%s\"" % str('nop'),#float(clustcenters[j]),
+		
+				print >> fhmm, "[label=\"%f\"];" % round(float(transhmm[i][j]), 3)
+
+	print >> fhmm, "start [shape=Mdiamond];"
+	if (float(clustcenters[startState]) > 0):
+		print >> fhmm, "start -> \"w%s\";" % convertLog2DataToM(float(clustcenters[startState]))
+	elif (float(clustcenters[startState]) < 0):
+		print >> fhmm, "start -> \"d%s\";" % convertLog2DataToM(float(-1*float(clustcenters[startState])))
+	else:
+		print >> fhmm, "start -> \"%s\";" % str('nop')#float(clustcenters[startState])	

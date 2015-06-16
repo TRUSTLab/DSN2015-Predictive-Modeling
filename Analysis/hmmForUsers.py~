@@ -1,0 +1,167 @@
+import numpy
+import os
+import shutil
+import math
+import copy
+
+def convertLog2DataToM(data):
+	# take log2data centroids (float) as input
+	# return strings with K or M or G
+	
+	# data is never 0, and always >0
+	bytes = math.pow(2, data)
+	
+	if bytes < 1024:
+		return str('%5.3fB' % bytes)
+	elif bytes < (1024*1024):
+		bytes = float(bytes / 1024)
+		return str('%5.3fK' % bytes)
+	elif bytes < (1024*1024*1024):
+		bytes = float(bytes / (1024*1024))
+		return str('%5.3fM' % bytes)
+	else:
+		bytes = float(bytes / (1024*1024*1024))
+		return str('%5.3fG' % bytes)
+
+# takes each user data and clustering result
+# creates hmms for each user
+def createHMM(numStates, currUser, currClusters):
+	
+	# transition matrix initialization
+	transhmm = numpy.zeros(shape = (numStates,numStates))
+	rawhmm = []
+	
+	preSymbol = -1
+	
+	for i in range(len(currClusters)):
+		if preSymbol == -1: # means this is first cluster/state
+			preSymbol = currClusters[i]
+			truestartState = preSymbol
+		else:
+			transhmm[preSymbol, currClusters[i]] += 1
+			preSymbol = currClusters[i]
+			#startState = currClusters[i] # last one is the start state for first pi
+
+	rawhmm = copy.deepcopy(transhmm)
+
+	# create probabilities for transitions between states
+	for i in range(numStates):
+		denom = float(sum(transhmm[i])) # sum of each row
+		for j in range(numStates):
+			if denom > 0:
+				transhmm[i, j] = float(transhmm[i, j]/denom)
+			
+	startState = preSymbol
+	return transhmm.tolist(), startState, rawhmm.tolist(), truestartState
+
+# call to print current HMM as txt file as well as  png
+def printHMMs(transhmm, currUser, startState, strname, clustcenters):
+	
+	fhmm = open(strname, 'w')
+	print >> fhmm, "digraph G {"
+
+	for i in range(len(transhmm)):
+		#print float(clustcenters[i])
+		if float(clustcenters[i]) > 0:
+			print >> fhmm, "\"w%s\" [style=filled color=\"#d77127\"];" % convertLog2DataToM(float(clustcenters[i]))
+		elif float(clustcenters[i]) < 0:
+			print >> fhmm, "\"d%s\" [style=filled color=\"#7b9a70\"];" % convertLog2DataToM(float(-1*float(clustcenters[i])))
+		else:
+			print >> fhmm, "\"%s\";" % str('nop')#float(clustcenters[i])
+
+		for j in range(len(transhmm)):
+			if transhmm[i][j] != 0:				
+				if float(clustcenters[i]) > 0:
+					print >> fhmm, "\"w%s\" ->" % convertLog2DataToM(float(clustcenters[i])),
+				elif float(clustcenters[i]) < 0:
+					print >> fhmm, "\"d%s\" ->" % convertLog2DataToM(float(-1*float(clustcenters[i]))),
+				else:
+					print >> fhmm, "\"%s\" ->" % str('nop'),#float(clustcenters[i]),
+
+				if float(clustcenters[j]) > 0:
+					print >> fhmm, "\"w%s\"" % convertLog2DataToM(float(clustcenters[j])),
+				elif float(clustcenters[j]) < 0:
+					print >> fhmm, "\"d%s\"" % convertLog2DataToM(float(-1*float(clustcenters[j]))),
+				else:
+					print >> fhmm, "\"%s\"" % str('nop'),#float(clustcenters[j]),
+		
+				print >> fhmm, "[label=\"%f\"];" % round(float(transhmm[i][j]), 3)
+
+	print >> fhmm, "start [shape=Mdiamond];"
+	if (float(clustcenters[startState]) > 0):
+		print >> fhmm, "start -> \"w%s\";" % convertLog2DataToM(float(clustcenters[startState]))
+	elif (float(clustcenters[startState]) < 0):
+		print >> fhmm, "start -> \"d%s\";" % convertLog2DataToM(float(-1*float(clustcenters[startState])))
+	else:
+		print >> fhmm, "start -> \"%s\";" % str('nop')#float(clustcenters[startState])	
+
+# take previous rawhmm counter of this user
+# update by current input cluster result
+# divide by denom, return transhmm probs
+def updateHMM(rawhmm, inputcluster, precluster):
+	rawhmm[precluster][inputcluster] += 1
+	p = numpy.zeros(shape = (len(rawhmm),len(rawhmm)))
+
+	for i in range(len(rawhmm)):
+		denom = float(sum(rawhmm[i])) # sum of each row
+
+		for j in range(len(rawhmm)):
+			if denom > 0:
+				p[i, j] = float(rawhmm[i][j]/denom)
+
+	return p.tolist(), rawhmm
+
+def mainHMM(clusteringChoice):
+	# main
+	# kmeans first
+	userList = []
+	clusterList = []
+	dataList = []
+
+	if clusteringChoice == 1: #kmeans
+		fdata = open('kmeansClusters.txt', 'r')
+	else: #meanshift
+		fdata = open('meanshiftClusters.txt', 'r')
+
+	for line in fdata:
+		xtmp = 	line.split()
+		userList.append(int(xtmp[0]))
+		clusterList.append(int(xtmp[1]))
+		dataList.append(float(xtmp[2]))
+
+	k = max(clusterList)+1
+
+	# hmm folder
+	path_hmm = 'hmms'
+	shutil.rmtree(path_hmm)
+	os.mkdir(path_hmm)
+	start_hash = {}
+
+	for currUser in list(set(userList)): # for each user
+		# find first index list of current user
+		startOfUser = userList.index(currUser)
+		i = startOfUser
+		matchIndex = []
+		currClusters = []
+		currData = []
+
+		# take the user's data in this while loop
+		while((userList[i] == currUser) and (i < len(userList)-1)):
+			currClusters.append(clusterList[i])
+			currData.append(dataList[i])
+			matchIndex.append(i)
+			i = i + 1
+	
+		transhmm, startstate = createHMM(k, currUser, currClusters, clusteringChoice)
+		start_hash[currUser] = startstate
+		strname = str(currUser) + "-HMM.txt"
+		fhmm = open(os.path.join(path_hmm, strname), 'w')
+		for xx in range(k):
+			print >> fhmm, transhmm.tolist()[xx]
+
+		strTmp = "cd hmms; dot -Tpng " + str(currUser) + "-HMM.dot -o " + str(currUser) + "-HMM.png"
+		#print strTmp
+		os.system(strTmp)
+	
+
+	return list(set(userList)), start_hash
