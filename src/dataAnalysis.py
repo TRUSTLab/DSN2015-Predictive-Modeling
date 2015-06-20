@@ -1,4 +1,5 @@
-
+# author Ulya Bayram
+# ulyabayram@gmail.com
 # input is the dictionary 
 # each key is the uderID
 # for each user, it contains the delta's w/d
