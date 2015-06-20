@@ -2,7 +2,7 @@ Author: Ulya Bayram
 
 Contact: ulyabayram@gmail.com
 
-Dataset is obtained from Illinois Natural History Survey, for the following paper, in case of using the dataset, pleace cite this paper:
+Dataset is obtained from Illinois Natural History Survey, for the following paper, in case of using the dataset, please cite this paper:
 
 Ulya Bayram, Dwight Divine, Pin Zhou, Eric W. D. Rozier, "Improving reliability with dynamic syndrome allocation in intelligent software defined data centers", 45th Annual IEEE/IFIP International Conference on Dependable Systems and Networks (DSN), 2015.
 
