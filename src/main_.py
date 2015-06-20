@@ -109,7 +109,7 @@ print "Time it takes to read all the usage dataset, divide to test and training:
 ######## Clustering ##########
 # do not perform clustering with the chosen parameter if it already exists, checked by if else
 if method == 2: # meanshift
-	foldernametosavestuff = str('plots/'+ dataset + '/' + clusterstr + str(param))
+	foldernametosavestuff = str('results/'+ dataset + '/' + clusterstr + str(param))
 	str_filename_set = []
 
 	if not(os.path.exists(foldernametosavestuff)):
@@ -202,7 +202,7 @@ elif method == 1: # if kmeans is selected, repeat clustering nrepeat times, fina
 	# user defined, feel free to change
 	nrepeat = 30
 	for nrep in range(nrepeat):
-		foldernametosavestuff = str('plots/'+ dataset + '/' + clusterstr + str(param) + '_' + str(nrep))
+		foldernametosavestuff = str('results/'+ dataset + '/' + clusterstr + str(param) + '_' + str(nrep))
 		str_filename_set = []
 
 		if not(os.path.exists(foldernametosavestuff)):
@@ -284,7 +284,7 @@ elif method == 1: # if kmeans is selected, repeat clustering nrepeat times, fina
 										clusterSeparatedHashcopy, stringMMpredictionfile, printModelsFlag)
 			
 else: # statistical analysis
-	folder = str('plots/' + dataset + '/' + 'statistical')
+	folder = str('results/' + dataset + '/' + 'statistical')
 
 	if not(os.path.exists( folder )):
 		os.mkdir(folder)
