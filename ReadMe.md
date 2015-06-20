@@ -1,3 +1,6 @@
+DSN2015-Predictive-Modeling
+===========================
+
 Author: Ulya Bayram
 
 Contact: ulyabayram@gmail.com
@@ -7,7 +10,7 @@ These codes are writen for a research project, published in DSN2015. If you use 
 Ulya Bayram, Dwight Divine, Pin Zhou, Eric W. D. Rozier, "Improving reliability with dynamic syndrome allocation in intelligent software defined data centers", 45th Annual IEEE/IFIP International Conference on Dependable Systems and Networks (DSN), 2015.
 
 How to run the codes:
-=====================
+---------------------
 
 To run the test, run main_.py file. By default, it is arranged to read sys_s dataset, we also provide this dataset in our repository. If you are using another dataset, then you should change the folder we read the dataset from, and columns we read. All the detailed information on which parameters to change and which parts to change are on comments within the codes.
 
