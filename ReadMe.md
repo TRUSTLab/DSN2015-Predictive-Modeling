@@ -1,4 +1,5 @@
 Author: Ulya Bayram
+
 Contact: ulyabayram@gmail.com
 
 These codes are writen for a research project, published in DSN2015. If you use any of them, or if you use our dataset, please cite:
@@ -34,13 +35,26 @@ cluster_"method's name and cluster #".txt file has the data points and user id's
 "clustering method"Centers.txt file has the centroids of the clusters determined after the clustering is complete.
 
 MM_predictions_q_"quartile choice".txt has the prediction results, in given order: 
-	row number, original disk usage in bytes, predicted disk usage in bytes, disk usage change wrt previous time step in bytes, predicted disk usage change in bytes
+	
+* row number, 
+* original disk usage in bytes, 
+* predicted disk usage in bytes, 
+* disk usage change wrt previous time step in bytes, 
+* predicted disk usage change in bytes
 
 OverUnder_predictionResults.txt has over and under prediction rates, in the order:
-	quartile choice, over prediction rate, under prediction rate, average over prediction, average under prediction, number of occurrences of under prediction, sum of under prediction amounts
+	
+* quartile choice, 
+* over prediction rate, 
+* under prediction rate, 
+* average over prediction, 
+* average under prediction, 
+* number of occurrences of under prediction, 
+* sum of under prediction amounts
 
-numSyndromes_"# of disks"_q_"quartile choice".txt has the syndrome number that can be fit into the free space in that given time step, results we give our paper are averaged syndrome numbers, we print them on the screen as: 
-	plots/sys_s/meanshift5/reliabilityAnalysisSyndNums_numdisks_8_q_99.9 mean syndrome numbers --> 2.95265867511
+numSyndromes_"# of disks"_q_"quartile choice".txt has the syndrome number that can be fit into the free space in that given time step, results we give our paper are averaged syndrome numbers, we print them on the screen as:
+
+* plots/sys_s/meanshift5/reliabilityAnalysisSyndNums_numdisks_8_q_99.9 mean syndrome numbers --> 2.95265867511
 
 Important Note:
 ---------------
